@@ -1,21 +1,21 @@
 extern crate color_print;
 
-use std::ffi::OsString;
-use std::io::stdin;
+use std::io::{stdin, Write};
 
 use crate::utilities::User;
-use crate::USER;
+use color_print::{cprint, cprintln};
 
 pub struct CommandMode<'a> {
     commands: Box<Vec<&'a str>>,
-    user: User
+    user: Box<User>
 }
 
 impl<'a> CommandMode<'a> {
-    pub fn new(vector: Vec<&str>) -> CommandMode {
-        CommandMode { commands: Box::new(vector), user: USER }
+    pub fn new(vector: &'a Vec<&str>, user: Box<User>) -> CommandMode<'a> {
+        CommandMode { commands: Box::new(vector.to_vec()), user }
     }
 
+    #[allow(dead_code)]
     pub fn see_commands(&self) {
         let mut i: u8 = 0;
         for command in &*self.commands {
@@ -25,17 +25,23 @@ impl<'a> CommandMode<'a> {
     }
 
     pub fn enter_command(&self) {
-        let is_admin: &str = if USER.is_admin() {"#"} else {"$"};
-        color_print::cprint!("<green>{}</>@<magenta>{:?}</>:<yellow>~{}</> ", USER.name, gethostname::gethostname(), is_admin);
+        let is_admin: &str = if self.user.is_admin() {"#"} else {"$"};
+        cprint!(
+            "<green>{}</>@<magenta>{}</>:<yellow>~{}</> ",
+            self.user.get_name(),
+            gethostname::gethostname().to_string_lossy(), // Convert Option<&str> to &str
+            is_admin
+        );
+        
         let command = input();
 
         if !in_vector(&self.commands, &command.as_str()) {
-            println!("Invalid command: {command}");
+            cprintln!("Invalid command: <red>{}</>", command);
             return;
         }
         match command.as_str() {
             "open" => {},
-            _ => color_print::cprintln!("<red>Executing command: {}</red>", command),
+            _ => cprintln!("<red>Executing command: {}</red>", command),
         }
     }
 }
@@ -50,6 +56,7 @@ fn in_vector<T: Eq>(vector: &Vec<T>, element: &T) -> bool {
 }
 
 pub fn input() -> String {
+    let _ = std::io::stdout().flush();
     let mut input = String::new();
     stdin().read_line(&mut input).expect("Failed to read line");
     input

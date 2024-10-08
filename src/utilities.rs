@@ -1,6 +1,6 @@
 pub struct User {
     is_admin: bool,
-    pub name: String
+    name: String
 }
 
 impl User {
@@ -10,5 +10,14 @@ impl User {
     
     pub fn is_admin(&self) -> bool {
         self.is_admin
+    }
+
+    #[allow(dead_code)]
+    pub fn set_admin(&mut self, is_admin: bool) {
+        self.is_admin = is_admin;
+    }
+
+    pub fn get_name(&self) -> &String {
+        &self.name
     }
 }

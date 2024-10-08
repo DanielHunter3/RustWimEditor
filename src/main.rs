@@ -1,8 +1,12 @@
 mod utilities;
 mod command_mode;
 
-const USER: utilities::User = utilities::User::new(String::new());
+use utilities::User;
+use command_mode::CommandMode;
+
 fn main() {
-    let m = command_mode::CommandMode::new(vec![]);
+    let u = Box::new(User::new("sd".to_string()));
+    let binding = vec!["ds", "s"];
+    let m = CommandMode::new(&binding, u);
     m.enter_command();
 }
